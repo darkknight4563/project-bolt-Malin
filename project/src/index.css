@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  body {
+    @apply antialiased text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900;
+  }
+}
+
+@layer utilities {
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .section-spacing {
+    @apply py-16 sm:py-24 lg:py-32;
+  }
+
+  .text-shadow-white {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+
+  .text-shadow-violet {
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+  }
+
+  .fade-up {
+    @apply motion-safe:animate-[fadeUp_0.5s_ease-out_forwards];
+  }
+
+  .animate-gradient {
+    background-size: 400%;
+    -webkit-animation: gradient 8s ease infinite;
+    animation: gradient 8s ease infinite;
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

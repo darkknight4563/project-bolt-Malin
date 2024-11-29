@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_schedule_availabilities",
+  "info": {
+    "displayName": "Availability",
+    "description": "Therapist availability schedule"
+  },
+  "options": {},
+  "attributes": {
+    "days": {
+      "type": "json",
+      "required": true
+    },
+    "hours": {
+      "type": "string",
+      "required": true
+    }
+  }
+}
