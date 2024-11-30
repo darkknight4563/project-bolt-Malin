@@ -1,0 +1,128 @@
+service: malin-mental-health
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+    DATABASE_URL: ${ssm:/malin/${self:provider.stage}/database_url}
+    JWT_SECRET: ${ssm:/malin/${self:provider.stage}/jwt_secret}
+    ENCRYPTION_KEY: ${ssm:/malin/${self:provider.stage}/encryption_key}
+    ENCRYPTION_IV: ${ssm:/malin/${self:provider.stage}/encryption_iv}
+    STRAPI_URL: ${ssm:/malin/${self:provider.stage}/strapi_url}
+    STRAPI_API_TOKEN: ${ssm:/malin/${self:provider.stage}/strapi_api_token}
+    AWS_S3_BUCKET: ${self:custom.s3Bucket}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - rds-data:ExecuteStatement
+            - rds-data:BatchExecuteStatement
+          Resource: 
+            - arn:aws:rds:${self:provider.region}:*:cluster:*
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: 
+            - arn:aws:secretsmanager:${self:provider.region}:*:secret:*
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:DeleteObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::${self:custom.s3Bucket}
+            - arn:aws:s3:::${self:custom.s3Bucket}/*
+        - Effect: Allow
+          Action:
+            - cloudwatch:PutMetricData
+          Resource: "*"
+
+package:
+  patterns:
+    - '!node_modules/.prisma/client/libquery_engine-*'
+    - 'node_modules/.prisma/client/libquery_engine-rhel-*'
+    - '!node_modules/prisma/libquery_engine-*'
+    - '!node_modules/@prisma/engines/**'
+    - '!**/*.test.ts'
+    - '!tests/**'
+    - '!coverage/**'
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: ANY
+    timeout: 30
+    memorySize: 1024
+    environment:
+      FUNCTION_NAME: api
+    vpc:
+      securityGroupIds:
+        - ${ssm:/malin/${self:provider.stage}/security_group_id}
+      subnetIds:
+        - ${ssm:/malin/${self:provider.stage}/subnet_id_1}
+        - ${ssm:/malin/${self:provider.stage}/subnet_id_2}
+
+resources:
+  Resources:
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.s3Bucket}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        VersioningConfiguration:
+          Status: Enabled
+        LifecycleConfiguration:
+          Rules:
+            - Id: TransitionToIA
+              Status: Enabled
+              Transitions:
+                - StorageClass: STANDARD_IA
+                  TransitionInDays: 30
+    
+    CloudWatchDashboard:
+      Type: AWS::CloudWatch::Dashboard
+      Properties:
+        DashboardName: ${self:service}-${self:provider.stage}
+        DashboardBody: ${file(./dashboard.json)}
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-prune-plugin
+
+custom:
+  s3Bucket: ${self:service}-${self:provider.stage}-resources
+  dotenv:
+    path: .env.${self:provider.stage}
+  serverless-offline:
+    httpPort: 4000
+  prune:
+    automatic: true
+    number: 3  # Keep last 3 versions
+  alerts:
+    stages:
+      - prod
+    topics:
+      alarm:
+        topic: ${self:service}-${self:provider.stage}-alerts
+        notifications:
+          - protocol: email
+            endpoint: ${ssm:/malin/${self:provider.stage}/alert_email}
