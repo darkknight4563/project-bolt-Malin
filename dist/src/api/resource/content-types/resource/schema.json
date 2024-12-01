@@ -1,0 +1,48 @@
+{
+    "kind": "collectionType",
+    "collectionName": "resources",
+    "info": {
+        "singularName": "resource",
+        "pluralName": "resources",
+        "displayName": "Resource",
+        "description": "Mental health resources and materials"
+    },
+    "options": {
+        "draftAndPublish": true
+    },
+    "pluginOptions": {},
+    "attributes": {
+        "title": {
+            "type": "string",
+            "required": true
+        },
+        "description": {
+            "type": "text",
+            "required": true
+        },
+        "type": {
+            "type": "enumeration",
+            "enum": ["article", "video", "audio", "worksheet"],
+            "required": true
+        },
+        "content": {
+            "type": "richtext",
+            "required": true
+        },
+        "thumbnail": {
+            "type": "media",
+            "multiple": false,
+            "required": true,
+            "allowedTypes": ["images"]
+        },
+        "downloadUrl": {
+            "type": "string"
+        },
+        "category": {
+            "type": "relation",
+            "relation": "manyToOne",
+            "target": "api::category.category",
+            "inversedBy": "resources"
+        }
+    }
+}
