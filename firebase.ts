@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 // Development Firebase configuration
 const devFirebaseConfig = {
-  apiKey: "AIzaSyDEVxwFMXmS6HcQmF2Zw_kRQHmKcKl8Hs4",
+  apiKey: "",
   authDomain: "malin-mental-health-dev.firebaseapp.com",
   projectId: "malin-mental-health-dev",
   storageBucket: "malin-mental-health-dev.appspot.com",
