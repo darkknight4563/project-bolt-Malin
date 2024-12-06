@@ -19,7 +19,7 @@ const devFirebaseConfig = {
   projectId: "malin-mental-health-dev",
   storageBucket: "malin-mental-health-dev.appspot.com",
   messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abc123def456ghi789jkl"
+  appId: ""
 };
 
 // Initialize Firebase
